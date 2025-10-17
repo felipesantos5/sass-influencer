@@ -21,9 +21,9 @@ const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3";
 const RECENT_VIDEOS_TO_FETCH = 20; // Aumentamos a amostra para métricas mais precisas
 
 // --- REGRAS DE FILTRAGEM DE QUALIDADE ---
-const MIN_SUBSCRIBERS = 1000;
+const MIN_SUBSCRIBERS = 5000;
 const MIN_VIDEOS = 10;
-const ACTIVITY_MONTH_THRESHOLD = 6; // Canal deve ter postado nos últimos 6 meses
+const ACTIVITY_MONTH_THRESHOLD = 2; // Canal deve ter postado nos últimos 6 meses
 
 export class YouTubeService {
   private youtubeRepository: YouTubeRepository;

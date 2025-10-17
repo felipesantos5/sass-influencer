@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-import { pool } from "../../config/database";
 import { IInfluencer } from "../../shared/interfaces/influencer.interface";
 
 export class YouTubeRepository {

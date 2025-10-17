@@ -44,7 +44,7 @@ const startServer = async () => {
       "[App] Requisição para executar o worker sob demanda recebida..."
     );
     try {
-      // await youtubeService.fetchAndSaveTopInfluencers();
+      await youtubeService.fetchAndSaveTopInfluencers();
       await instagramService.enrichInfluencersWithInstagramData();
       res.status(200).send("Worker executado com sucesso!");
       console.log("[App] Worker sob demanda finalizado com sucesso.");
