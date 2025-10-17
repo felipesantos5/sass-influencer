@@ -1,6 +1,6 @@
 // src/components/InfluencersTable.tsx
 // src/components/InfluencersTable.tsx
-import type { Influencer } from "@/types/influencer";
+import type { InfluencerEntity } from "@/types/influencer";
 import {
   Table,
   TableBody,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Youtube, Instagram } from "lucide-react"; // Ícones para as plataformas!
 
 const formatNumber = (num: number) => {
   if (!num) return "0";
@@ -19,7 +20,8 @@ const formatNumber = (num: number) => {
   return num;
 };
 
-const getEngagementBadge = (rate: number) => {
+const getEngagementBadge = (rate: number | undefined) => {
+  if (rate === undefined) return <Badge variant="outline">N/A</Badge>;
   const percentage = rate * 100;
   if (percentage > 5)
     return (
@@ -38,7 +40,7 @@ const getEngagementBadge = (rate: number) => {
 };
 
 interface InfluencersTableProps {
-  influencers: Influencer[];
+  influencers: InfluencerEntity[];
 }
 
 export const InfluencersTable: React.FC<InfluencersTableProps> = ({
@@ -50,45 +52,67 @@ export const InfluencersTable: React.FC<InfluencersTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[300px]">Influenciador</TableHead>
-            <TableHead>Nicho</TableHead>
-            <TableHead className="text-right">Inscritos</TableHead>
-            <TableHead className="text-right">Média Views</TableHead>
-            <TableHead className="text-right">Engajamento</TableHead>
-            <TableHead className="text-right">Vídeos/Mês</TableHead>
+            <TableHead>Plataformas</TableHead>
+            <TableHead>Seguidores (Total)</TableHead>
+            <TableHead className="text-right">Média Views (YT)</TableHead>
+            <TableHead className="text-right">Engajamento (YT)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {influencers.map((influencer) => (
-            <TableRow key={influencer.channel_id}>
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage
-                      src={influencer.avatar_url}
-                      alt={influencer.name}
-                    />
-                    <AvatarFallback>{influencer.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span>{influencer.name}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">{influencer.niche}</Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                {formatNumber(influencer.subscriber_count)}
-              </TableCell>
-              <TableCell className="text-right">
-                {formatNumber(influencer.avg_views_recent_videos)}
-              </TableCell>
-              <TableCell className="text-right">
-                {getEngagementBadge(influencer.engagement_rate)}
-              </TableCell>
-              <TableCell className="text-right">
-                {influencer.posts_last_30_days}
-              </TableCell>
-            </TableRow>
-          ))}
+          {influencers.map((influencer) => {
+            // Lógica para encontrar os perfis e agregar os dados
+            const youtubeProfile = influencer.profiles.find(
+              (p) => p.platform === "youtube"
+            );
+            const instagramProfile = influencer.profiles.find(
+              (p) => p.platform === "instagram"
+            );
+
+            const totalFollowers = influencer.profiles.reduce(
+              (sum, profile) => sum + (profile.subscriber_count || 0),
+              0
+            );
+            const avatarUrl =
+              youtubeProfile?.avatar_url || instagramProfile?.avatar_url;
+
+            return (
+              <TableRow key={influencer.id}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage
+                        src={avatarUrl}
+                        alt={influencer.display_name}
+                      />
+                      <AvatarFallback>
+                        {influencer.display_name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{influencer.display_name}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {youtubeProfile && (
+                      <Youtube className="h-5 w-5 text-red-600" />
+                    )}
+                    {instagramProfile && (
+                      <Instagram className="h-5 w-5 text-pink-600" />
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>{formatNumber(totalFollowers)}</TableCell>
+                <TableCell className="text-right">
+                  {youtubeProfile
+                    ? formatNumber(youtubeProfile.avg_views_recent_videos || 0)
+                    : "N/A"}
+                </TableCell>
+                <TableCell className="text-right">
+                  {getEngagementBadge(youtubeProfile?.engagement_rate)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

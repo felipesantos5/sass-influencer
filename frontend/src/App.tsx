@@ -1,6 +1,8 @@
 // src/App.tsx
 import { useEffect, useState, useMemo } from "react";
-import type { Influencer } from "./types/influencer";
+// Importamos o novo tipo principal
+// Importamos o novo tipo principal
+import type { InfluencerEntity } from "./types/influencer";
 import { Input } from "@/components/ui/input";
 import { NicheFilters } from "./components/NicheFilters";
 import { InfluencersTable } from "./components/InfluencersTable";
@@ -9,24 +11,24 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
 const API_URL = "http://localhost:3333/influencers";
-const NICHES = ["Tecnologia", "Fitness", "Moda", "Finanças"]; // Nossos nichos pré-definidos
+const NICHES = ["Tecnologia", "Fitness", "Moda", "Finanças"];
 
 function App() {
-  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  // O estado agora armazena a nova estrutura de dados
+  const [influencers, setInfluencers] = useState<InfluencerEntity[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para os filtros
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNiche, setSelectedNiche] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInfluencers = async () => {
-      // ... (código de fetch existente, sem alterações)
       try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error("Falha ao buscar dados do servidor.");
-        const data: Influencer[] = await response.json();
+        // O fetch agora espera receber o novo tipo de dado
+        const data: InfluencerEntity[] = await response.json();
         setInfluencers(data);
       } catch (err: any) {
         setError(err.message);
@@ -37,18 +39,21 @@ function App() {
     fetchInfluencers();
   }, []);
 
-  // Filtra os dados com base nos estados de busca e nicho
+  // Lógica de filtragem corrigida para usar as novas propriedades
   const filteredInfluencers = useMemo(() => {
     return influencers
-      .filter((inf) => (selectedNiche ? inf.niche === selectedNiche : true))
       .filter((inf) =>
-        inf.name.toLowerCase().includes(searchQuery.toLowerCase())
+        // Filtra pelo nicho principal
+        selectedNiche ? inf.main_niche === selectedNiche : true
+      )
+      .filter((inf) =>
+        // Filtra pelo nome de exibição (CORRIGE O ERRO!)
+        inf.display_name.toLowerCase().includes(searchQuery.toLowerCase())
       );
   }, [influencers, searchQuery, selectedNiche]);
 
   const renderContent = () => {
     if (isLoading) {
-      // Skeleton para a tabela
       return (
         <div className="space-y-2 rounded-lg border p-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -71,37 +76,28 @@ function App() {
       );
     }
 
+    // Passa a lista filtrada de InfluencerEntity para a tabela
     return <InfluencersTable influencers={filteredInfluencers} />;
   };
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <header className="text-center mb-8">
-        <h1 className="text-5xl font-extrabold tracking-tight">
-          SaaS Influencers
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Encontre os criadores ideais para sua marca
-        </p>
+        <h1 className="text-5xl font-extrabold tracking-tight">SaaS Influencers</h1>
+        <p className="text-muted-foreground mt-2">Encontre os criadores ideais para sua marca</p>
       </header>
 
-      {/* Seção de Filtros */}
       <section className="space-y-6 mb-8">
         <Input
           type="text"
           placeholder="Buscar por nome do canal..."
-          className="mx-auto w-full"
+          className="w-full mx-auto"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <NicheFilters
-          niches={NICHES}
-          selectedNiche={selectedNiche}
-          onSelectNiche={setSelectedNiche}
-        />
+        <NicheFilters niches={NICHES} selectedNiche={selectedNiche} onSelectNiche={setSelectedNiche} />
       </section>
 
-      {/* Seção de Conteúdo (Tabela ou Loading/Error) */}
       <main>{renderContent()}</main>
     </div>
   );
